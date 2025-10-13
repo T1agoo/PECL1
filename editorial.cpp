@@ -21,6 +21,8 @@ Pedido Cola::desencolar() {
     return p;
 }
 
+
+// KLK MI GENTE
 void Cola::mostrar() {
     NodoCola* aux = frente;
     while (aux) {
