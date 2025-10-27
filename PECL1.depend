@@ -1,4 +1,13 @@
 # depslib dependency file v1.0
-1760345586 source:c:\users\fyreo\desktop\uni\estructuradedatos\pel1\pecl1\main.cpp
+1761565413 source:c:\users\fyreo\desktop\uni\estructuradedatos\pel1\pecl1\main.cpp
+	"editorial.h"
+
+1761565020 source:c:\users\fyreo\desktop\uni\estructuradedatos\pel1\pecl1\editorial.cpp
+	"editorial.h"
+
+1761564998 c:\users\fyreo\desktop\uni\estructuradedatos\pel1\pecl1\editorial.h
 	<iostream>
+	<string>
+	<cstdlib>
+	<ctime>
 
