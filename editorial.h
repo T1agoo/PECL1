@@ -8,15 +8,16 @@
 using namespace std;
 
 // =================== CONFIGURACIÓN ===================
-#define MAX_TITULOS 10      // nº de títulos en catálogo
-#define N_PEDIDOS_PASO 12   // nº de pedidos procesados por fase
-#define TAM_LOTE 10         // incremento de stock desde imprenta
-#define LIBRERIAS 6         // ids 0..LIBRERIAS-1
-#define CAP_CAJA 5          // nº de pedidos por caja antes de enviar
+#define MAX_TITULOS 10
+#define N_PEDIDOS_PASO 12
+#define TAM_LOTE 10
+#define LIBRERIAS 6
+#define CAP_CAJA 5
 
-// =================== ENUMS Y STRUCTS ===================
+// =================== ENUMERADOS ===================
 enum Estado { INICIADO, ALMACEN, IMPRENTA, LISTO, CAJA };
 
+// =================== STRUCTS ===================
 struct Pedido {
     int id_editorial;
     string id_pedido;
@@ -26,9 +27,21 @@ struct Pedido {
     Estado estado;
 };
 
-// Nodos dinámicos
-struct NodoCola { Pedido pedido; NodoCola* sig; };
-struct NodoPila { Pedido pedido; NodoPila* sig; };
+struct Libro {
+    string cod_libro;
+    int stock;
+};
+
+// =================== NODOS ===================
+struct NodoCola {
+    Pedido pedido;
+    NodoCola* sig;
+};
+
+struct NodoPila {
+    Pedido pedido;
+    NodoPila* sig;
+};
 
 // =================== CLASE COLA ===================
 class Cola {
@@ -57,18 +70,16 @@ public:
     void mostrar();
 };
 
-// =================== FUNCIONES AUXILIARES ===================
-Pedido generarPedidoAleatorio();
+// =================== FUNCIONES ===================
 string generarIdPedido();
 string generarCodLibro();
 string generarMateria();
+Pedido generarPedidoAleatorio(Libro catalogo[]);
 void mostrarPedido(Pedido p);
-
-// =================== SIMULACIÓN ===================
-// Avanza una fase por llamada, y añade pedidos a la pila de su librería
+void inicializarCatalogo(Libro catalogo[]);
+void mostrarStock(Libro catalogo[]);
 void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
-                  Pila cajasLibrerias[], int stock[], int &fase);
+                  Pila cajasLibrerias[], Libro catalogo[], int &fase);
 
 #endif
-
 

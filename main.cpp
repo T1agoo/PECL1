@@ -5,8 +5,10 @@ int main() {
 
     Cola iniciado, almacen, imprenta, listo;
     Pila cajasLibrerias[LIBRERIAS];
-    int stock[MAX_TITULOS] = {0};
+    Libro catalogo[MAX_TITULOS];
     int fase = 0;
+
+    inicializarCatalogo(catalogo);
 
     int opcion, N;
 
@@ -25,7 +27,7 @@ int main() {
                 cout << "Cuantos pedidos generar?: ";
                 cin >> N;
                 for (int i = 0; i < N; i++) {
-                    Pedido p = generarPedidoAleatorio();
+                    Pedido p = generarPedidoAleatorio(catalogo);
                     iniciado.encolar(p);
                 }
                 cout << N << " pedidos generados.\n";
@@ -33,8 +35,7 @@ int main() {
             }
 
             case 2: {
-                ejecutarPaso(iniciado, almacen, imprenta, listo, cajasLibrerias, stock, fase);
-                cout << "Un paso de simulacion ejecutado. (fase actual = " << fase << ")\n";
+                ejecutarPaso(iniciado, almacen, imprenta, listo, cajasLibrerias, catalogo, fase);
                 break;
             }
 
@@ -55,6 +56,8 @@ int main() {
                 }
                 if (!hayPedidos)
                     cout << "(No hay cajas con pedidos por ahora)\n";
+
+                mostrarStock(catalogo);
                 break;
             }
 
@@ -83,4 +86,5 @@ int main() {
 
     return 0;
 }
+
 

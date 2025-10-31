@@ -23,6 +23,7 @@ Pedido Cola::desencolar() {
 
 void Cola::mostrar() {
     NodoCola* aux = frente;
+    if (!aux) { cout << "(Vacia)\n"; return; }
     while (aux != nullptr) {
         mostrarPedido(aux->pedido);
         aux = aux->sig;
@@ -69,26 +70,15 @@ string generarIdPedido() {
 
 string generarCodLibro() {
     string cod = "";
-    cod += to_string(rand() % 900 + 100); // 3 cifras
-    cod += char('A' + rand() % 26);       // una letra
-    cod += to_string(rand() % 90 + 10);   // 2 cifras
+    cod += to_string(rand() % 900 + 100);
+    cod += char('A' + rand() % 26);
+    cod += to_string(rand() % 90 + 10);
     return cod;
 }
 
 string generarMateria() {
     string materias[] = {"Matematicas","Fisica","Tecnologia","Musica","Historia","Lengua"};
     return materias[rand() % 6];
-}
-
-Pedido generarPedidoAleatorio() {
-    Pedido p;
-    p.id_editorial = rand() % LIBRERIAS;
-    p.id_pedido = generarIdPedido();
-    p.cod_libro = generarCodLibro();
-    p.materia = generarMateria();
-    p.unidades = rand() % 5 + 1; // entre 1 y 5 ejemplares
-    p.estado = INICIADO;
-    return p;
 }
 
 void mostrarPedido(Pedido p) {
@@ -106,9 +96,42 @@ void mostrarPedido(Pedido p) {
     cout << endl;
 }
 
+// =================== CATÁLOGO Y STOCK ===================
+void inicializarCatalogo(Libro catalogo[]) {
+    cout << "\n[INICIANDOSTOCK]\n";
+    for (int i = 0; i < MAX_TITULOS; i++) {
+        catalogo[i].cod_libro = generarCodLibro();
+        catalogo[i].stock = rand() % 11; // 5-20 unidades
+        cout << "Libro " << catalogo[i].cod_libro
+             << " Stock: " << catalogo[i].stock << " unidades\n";
+    }
+    cout << endl;
+}
+
+void mostrarStock(Libro catalogo[]) {
+    cout << "\n[STOCK ACTUAL]\n";
+    for (int i = 0; i < MAX_TITULOS; i++) {
+        cout << "Libro " << catalogo[i].cod_libro
+             << ": " << catalogo[i].stock << " unidades\n";
+    }
+    cout << endl;
+}
+
+// Genera un pedido solo de libros del catálogo
+Pedido generarPedidoAleatorio(Libro catalogo[]) {
+    Pedido p;
+    p.id_editorial = rand() % LIBRERIAS;
+    p.id_pedido = generarIdPedido();
+    p.cod_libro = catalogo[rand() % MAX_TITULOS].cod_libro;
+    p.materia = generarMateria();
+    p.unidades = rand() % 5 + 1;
+    p.estado = INICIADO;
+    return p;
+}
+
 // =================== SIMULACIÓN ===================
 void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
-                  Pila cajasLibrerias[], int stock[], int &fase) {
+                  Pila cajasLibrerias[], Libro catalogo[], int &fase) {
     Pedido p;
     int procesados = 0;
 
@@ -120,20 +143,38 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                 almacen.encolar(p);
                 procesados++;
             }
+            cout << "\n[FASE 0] " << procesados << " pedidos pasaron a ALMACÉN.\n";
             break;
 
         case 1: // ALMACEN → IMPRENTA o LISTO
             while (!almacen.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = almacen.desencolar();
-                int idLibro = rand() % MAX_TITULOS;
-                if (stock[idLibro] >= p.unidades) {
-                    stock[idLibro] -= p.unidades;
-                    p.estado = LISTO;
-                    listo.encolar(p);
-                } else {
-                    stock[idLibro] += TAM_LOTE;
-                    p.estado = IMPRENTA;
-                    imprenta.encolar(p);
+
+                // Buscar el libro en el catálogo
+                int idLibro = -1;
+                for (int i = 0; i < MAX_TITULOS; i++) {
+                    if (catalogo[i].cod_libro == p.cod_libro) {
+                        idLibro = i;
+                        break;
+                    }
+                }
+
+                if (idLibro != -1) {
+                    if (catalogo[idLibro].stock >= p.unidades) {
+                        catalogo[idLibro].stock -= p.unidades;
+                        p.estado = LISTO;
+                        listo.encolar(p);
+                        cout << "[ALMACEN] Pedido " << p.id_pedido
+                             << " listo (stock suficiente de " << p.cod_libro << ").\n";
+                    } else {
+                        p.estado = IMPRENTA;
+                        imprenta.encolar(p);
+                        catalogo[idLibro].stock += TAM_LOTE;
+                        cout << "[ALMACEN] Pedido " << p.id_pedido
+                             << " enviado a IMPRENTA (+"
+                             << TAM_LOTE << " unidades añadidas al stock de "
+                             << p.cod_libro << ").\n";
+                    }
                 }
                 procesados++;
             }
@@ -144,24 +185,27 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                 p = imprenta.desencolar();
                 p.estado = LISTO;
                 listo.encolar(p);
+                cout << "[IMPRENTA] Pedido " << p.id_pedido
+                     << " impreso, pasa a LISTO.\n";
                 procesados++;
             }
             break;
 
-        case 3: // LISTO → CAJA (y colocamos el pedido en la pila de su librería)
+        case 3: // LISTO → CAJA
             while (!listo.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = listo.desencolar();
                 p.estado = CAJA;
-                cajasLibrerias[p.id_editorial].apilar(p);
+                if (p.id_editorial >= 0 && p.id_editorial < LIBRERIAS)
+                    cajasLibrerias[p.id_editorial].apilar(p);
+                cout << "[LISTO] Pedido " << p.id_pedido
+                     << " enviado a caja de librería "
+                     << p.id_editorial << ".\n";
                 procesados++;
             }
             break;
     }
 
-    // Avanzamos la fase de forma cíclica (0→1→2→3→0)
+    mostrarStock(catalogo);
     fase = (fase + 1) % 4;
 }
-
-
-
 
