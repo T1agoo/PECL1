@@ -11,3 +11,15 @@
 	<cstdlib>
 	<ctime>
 
+1761912261 source:c:\users\santiago\desktop\uni\asignaturas\2a—o\estructurasdedatos\pecl1\pecl1\editorial.cpp
+	"editorial.h"
+
+1761911442 c:\users\santiago\desktop\uni\asignaturas\2a—o\estructurasdedatos\pecl1\pecl1\editorial.h
+	<iostream>
+	<string>
+	<cstdlib>
+	<ctime>
+
+1761912244 source:c:\users\santiago\desktop\uni\asignaturas\2a—o\estructurasdedatos\pecl1\pecl1\main.cpp
+	"editorial.h"
+

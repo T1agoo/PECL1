@@ -1,26 +1,34 @@
 #include "editorial.h"
 
 // =================== COLA ===================
+// Constructor: inicializa los punteros a null
 Cola::Cola() { frente = fin = nullptr; }
+
+// Destructor: elimina todos los elementos de la cola
 Cola::~Cola() { while (!vacia()) desencolar(); }
+
+// Comprueba si la cola está vacía
 bool Cola::vacia() { return frente == nullptr; }
 
+// Inserta un nuevo pedido al final de la cola
 void Cola::encolar(Pedido p) {
     NodoCola* nuevo = new NodoCola{p, nullptr};
-    if (fin == nullptr) frente = fin = nuevo;
-    else { fin->sig = nuevo; fin = nuevo; }
+    if (fin == nullptr) frente = fin = nuevo; // si la cola estaba vacía
+    else { fin->sig = nuevo; fin = nuevo; }   // si ya tiene elementos
 }
 
+// Elimina y devuelve el pedido al frente de la cola
 Pedido Cola::desencolar() {
     if (vacia()) { cout << "Cola vacia\n"; exit(1); }
-    NodoCola* aux = frente;
-    Pedido p = aux->pedido;
-    frente = frente->sig;
-    if (frente == nullptr) fin = nullptr;
-    delete aux;
-    return p;
+    NodoCola* aux = frente;       // nodo temporal al frente
+    Pedido p = aux->pedido;       // copia del pedido
+    frente = frente->sig;         // avanzar el frente
+    if (frente == nullptr) fin = nullptr; // si se vacía la cola
+    delete aux;                   // liberar memoria
+    return p;                     // devolver el pedido
 }
 
+// Muestra todos los pedidos de la cola (del frente al final)
 void Cola::mostrar() {
     NodoCola* aux = frente;
     if (!aux) { cout << "(Vacia)\n"; return; }
@@ -31,24 +39,32 @@ void Cola::mostrar() {
 }
 
 // =================== PILA ===================
+// Constructor: inicializa el tope a null
 Pila::Pila() { tope = nullptr; }
+
+// Destructor: vacía la pila eliminando todos los nodos
 Pila::~Pila() { while (!vacia()) desapilar(); }
+
+// Comprueba si la pila está vacía
 bool Pila::vacia() { return tope == nullptr; }
 
+// Apila un pedido en la parte superior
 void Pila::apilar(Pedido p) {
     NodoPila* nuevo = new NodoPila{p, tope};
     tope = nuevo;
 }
 
+// Desapila (extrae) el pedido del tope
 Pedido Pila::desapilar() {
     if (vacia()) { cout << "Pila vacia\n"; exit(1); }
     NodoPila* aux = tope;
     Pedido p = aux->pedido;
-    tope = tope->sig;
+    tope = tope->sig; // mover el tope
     delete aux;
     return p;
 }
 
+// Muestra los pedidos en la pila (de arriba hacia abajo)
 void Pila::mostrar() {
     if (vacia()) {
         cout << "(Caja vacía)\n";
@@ -62,25 +78,29 @@ void Pila::mostrar() {
 }
 
 // =================== FUNCIONES AUXILIARES ===================
+// Genera un identificador único de pedido (ej: "P12345")
 string generarIdPedido() {
     string id = "P";
     for (int i = 0; i < 5; i++) id += to_string(rand() % 10);
     return id;
 }
 
+// Genera un código de libro aleatorio (ej: "963K76")
 string generarCodLibro() {
     string cod = "";
-    cod += to_string(rand() % 900 + 100);
-    cod += char('A' + rand() % 26);
-    cod += to_string(rand() % 90 + 10);
+    cod += to_string(rand() % 900 + 100);  // tres dígitos
+    cod += char('A' + rand() % 26);        // una letra mayúscula
+    cod += to_string(rand() % 90 + 10);    // dos dígitos
     return cod;
 }
 
+// Devuelve una materia aleatoria de entre las posibles
 string generarMateria() {
     string materias[] = {"Matematicas","Fisica","Tecnologia","Musica","Historia","Lengua"};
     return materias[rand() % 6];
 }
 
+// Muestra en consola la información completa de un pedido
 void mostrarPedido(Pedido p) {
     cout << "[Pedido " << p.id_pedido << "] Libreria " << p.id_editorial
          << " | Libro: " << p.cod_libro << " (" << p.materia << ")"
@@ -96,18 +116,23 @@ void mostrarPedido(Pedido p) {
     cout << endl;
 }
 
-// =================== CATÁLOGO Y STOCK ===================
+// ======================================================
+// CATÁLOGO Y CONTROL DE STOCK
+// ======================================================
+
+// Inicializa el catálogo con libros aleatorios y stock entre 0–10 unidades
 void inicializarCatalogo(Libro catalogo[]) {
-    cout << "\n[INICIANDOSTOCK]\n";
+    cout << "\n[INICIANDO STOCK]\n";
     for (int i = 0; i < MAX_TITULOS; i++) {
-        catalogo[i].cod_libro = generarCodLibro();
-        catalogo[i].stock = rand() % 11; // 5-20 unidades
+        catalogo[i].cod_libro = generarCodLibro(); // código único
+        catalogo[i].stock = rand() % 11;           // stock aleatorio 0–10
         cout << "Libro " << catalogo[i].cod_libro
              << " Stock: " << catalogo[i].stock << " unidades\n";
     }
     cout << endl;
 }
 
+// Muestra el stock actual del catálogo de libros
 void mostrarStock(Libro catalogo[]) {
     cout << "\n[STOCK ACTUAL]\n";
     for (int i = 0; i < MAX_TITULOS; i++) {
@@ -117,23 +142,30 @@ void mostrarStock(Libro catalogo[]) {
     cout << endl;
 }
 
-// Genera un pedido solo de libros del catálogo
+// Genera un pedido aleatorio que pertenece a un libro existente en el catálogo
 Pedido generarPedidoAleatorio(Libro catalogo[]) {
     Pedido p;
-    p.id_editorial = rand() % LIBRERIAS;
-    p.id_pedido = generarIdPedido();
-    p.cod_libro = catalogo[rand() % MAX_TITULOS].cod_libro;
-    p.materia = generarMateria();
-    p.unidades = rand() % 5 + 1;
-    p.estado = INICIADO;
+    p.id_editorial = rand() % LIBRERIAS;                 // ID de librería 0–5
+    p.id_pedido = generarIdPedido();                     // ID del pedido
+    p.cod_libro = catalogo[rand() % MAX_TITULOS].cod_libro; // libro existente
+    p.materia = generarMateria();                        // materia aleatoria
+    p.unidades = rand() % 5 + 1;                         // unidades entre 1–5
+    p.estado = INICIADO;                                 // estado inicial
     return p;
 }
 
-// =================== SIMULACIÓN ===================
+// ======================================================
+// SIMULACIÓN DE FASES DE PROCESAMIENTO
+// ======================================================
+// Ejecuta un paso de la simulación moviendo pedidos entre
+// colas según su estado y el stock disponible.
+// El parámetro 'fase' indica qué transición ejecutar.
+// ------------------------------------------------------
+
 void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                   Pila cajasLibrerias[], Libro catalogo[], int &fase) {
     Pedido p;
-    int procesados = 0;
+    int procesados = 0; // contador de pedidos procesados en esta fase
 
     switch(fase) {
         case 0: // INICIADO → ALMACEN
@@ -150,7 +182,7 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
             while (!almacen.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = almacen.desencolar();
 
-                // Buscar el libro en el catálogo
+                // Buscar el libro en el catálogo por su código
                 int idLibro = -1;
                 for (int i = 0; i < MAX_TITULOS; i++) {
                     if (catalogo[i].cod_libro == p.cod_libro) {
@@ -159,20 +191,24 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                     }
                 }
 
+                // Si se encontró el libro en el catálogo
                 if (idLibro != -1) {
+                    // Hay stock suficiente → pasa a LISTO
                     if (catalogo[idLibro].stock >= p.unidades) {
                         catalogo[idLibro].stock -= p.unidades;
                         p.estado = LISTO;
                         listo.encolar(p);
                         cout << "[ALMACEN] Pedido " << p.id_pedido
                              << " listo (stock suficiente de " << p.cod_libro << ").\n";
-                    } else {
+                    }
+                    // No hay stock suficiente → pasa a IMPRENTA y se añade lote
+                    else {
                         p.estado = IMPRENTA;
                         imprenta.encolar(p);
                         catalogo[idLibro].stock += TAM_LOTE;
                         cout << "[ALMACEN] Pedido " << p.id_pedido
-                             << " enviado a IMPRENTA (+"
-                             << TAM_LOTE << " unidades añadidas al stock de "
+                             << " enviado a IMPRENTA (+" << TAM_LOTE
+                             << " unidades añadidas al stock de "
                              << p.cod_libro << ").\n";
                     }
                 }
@@ -195,6 +231,7 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
             while (!listo.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = listo.desencolar();
                 p.estado = CAJA;
+                // Apilar en la caja de la librería correspondiente
                 if (p.id_editorial >= 0 && p.id_editorial < LIBRERIAS)
                     cajasLibrerias[p.id_editorial].apilar(p);
                 cout << "[LISTO] Pedido " << p.id_pedido
@@ -205,7 +242,9 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
             break;
     }
 
+    // Mostrar el stock después de cada fase
     mostrarStock(catalogo);
+
+    // Avanzar a la siguiente fase (ciclo 0→1→2→3→0)
     fase = (fase + 1) % 4;
 }
-
