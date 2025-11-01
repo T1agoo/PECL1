@@ -116,9 +116,9 @@ void mostrarPedido(Pedido p) {
     cout << endl;
 }
 
-// ======================================================
+
 // CATÁLOGO Y CONTROL DE STOCK
-// ======================================================
+
 
 // Inicializa el catálogo con libros aleatorios y stock entre 0–10 unidades
 void inicializarCatalogo(Libro catalogo[]) {
@@ -154,13 +154,13 @@ Pedido generarPedidoAleatorio(Libro catalogo[]) {
     return p;
 }
 
-// ======================================================
+
 // SIMULACIÓN DE FASES DE PROCESAMIENTO
-// ======================================================
+
 // Ejecuta un paso de la simulación moviendo pedidos entre
 // colas según su estado y el stock disponible.
 // El parámetro 'fase' indica qué transición ejecutar.
-// ------------------------------------------------------
+
 
 void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                   Pila cajasLibrerias[], Libro catalogo[], int &fase) {
@@ -175,7 +175,7 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                 almacen.encolar(p);
                 procesados++;
             }
-            cout << "\n[FASE 0] " << procesados << " pedidos pasaron a ALMACÉN.\n";
+            cout << "\n[FASE 0] " << procesados << " pedidos pasaron a ALMACEN.\n";
             break;
 
         case 1: // ALMACEN → IMPRENTA o LISTO
