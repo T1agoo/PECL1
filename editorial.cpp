@@ -258,7 +258,7 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                 }
             }
 
-            // 2️⃣ Vaciar todas las colas del sistema para reiniciar
+            // Vaciar todas las colas del sistema para reiniciar
             while (!iniciado.vacia()) iniciado.desencolar();
             while (!almacen.vacia()) almacen.desencolar();
             while (!imprenta.vacia()) imprenta.desencolar();
