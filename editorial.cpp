@@ -67,7 +67,7 @@ Pedido Pila::desapilar() {
 // Muestra los pedidos en la pila (de arriba hacia abajo)
 void Pila::mostrar() {
     if (vacia()) {
-        cout << "(Caja vacía)\n";
+        cout << "Caja vacia, tiene que haber pedidos en Caja\n";
         return;
     }
     NodoPila* aux = tope;
@@ -165,7 +165,7 @@ Pedido generarPedidoAleatorio(Libro catalogo[]) {
 void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                   Pila cajasLibrerias[], Libro catalogo[], int &fase) {
     Pedido p;
-    int procesados = 0; // contador de pedidos procesados en esta fase
+    int procesados = 0;
 
     switch(fase) {
         case 0: // INICIADO → ALMACEN
@@ -182,7 +182,6 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
             while (!almacen.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = almacen.desencolar();
 
-                // Buscar el libro en el catálogo por su código
                 int idLibro = -1;
                 for (int i = 0; i < MAX_TITULOS; i++) {
                     if (catalogo[i].cod_libro == p.cod_libro) {
@@ -191,24 +190,20 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
                     }
                 }
 
-                // Si se encontró el libro en el catálogo
                 if (idLibro != -1) {
-                    // Hay stock suficiente → pasa a LISTO
                     if (catalogo[idLibro].stock >= p.unidades) {
                         catalogo[idLibro].stock -= p.unidades;
                         p.estado = LISTO;
                         listo.encolar(p);
                         cout << "[ALMACEN] Pedido " << p.id_pedido
                              << " listo (stock suficiente de " << p.cod_libro << ").\n";
-                    }
-                    // No hay stock suficiente → pasa a IMPRENTA y se añade lote
-                    else {
+                    } else {
                         p.estado = IMPRENTA;
                         imprenta.encolar(p);
                         catalogo[idLibro].stock += TAM_LOTE;
                         cout << "[ALMACEN] Pedido " << p.id_pedido
                              << " enviado a IMPRENTA (+" << TAM_LOTE
-                             << " unidades añadidas al stock de "
+                             << " unidades nuevas al stock de "
                              << p.cod_libro << ").\n";
                     }
                 }
@@ -231,20 +226,53 @@ void ejecutarPaso(Cola &iniciado, Cola &almacen, Cola &imprenta, Cola &listo,
             while (!listo.vacia() && procesados < N_PEDIDOS_PASO) {
                 p = listo.desencolar();
                 p.estado = CAJA;
-                // Apilar en la caja de la librería correspondiente
                 if (p.id_editorial >= 0 && p.id_editorial < LIBRERIAS)
                     cajasLibrerias[p.id_editorial].apilar(p);
                 cout << "[LISTO] Pedido " << p.id_pedido
-                     << " enviado a caja de librería "
+                     << " enviado a caja de libreria "
                      << p.id_editorial << ".\n";
                 procesados++;
             }
             break;
+
+        case 4: // CAJA → ENTREGA FINAL
+            cout << "\n[FASE 4] Entregando pedidos y actualizando stock...\n";
+
+            // Vaciar las cajas de librerías y restar del stock
+            for (int i = 0; i < LIBRERIAS; i++) {
+                while (!cajasLibrerias[i].vacia()) {
+                    p = cajasLibrerias[i].desapilar();
+
+                    // Buscar libro y restar unidades
+                    for (int j = 0; j < MAX_TITULOS; j++) {
+                        if (catalogo[j].cod_libro == p.cod_libro) {
+                            catalogo[j].stock = max(0, catalogo[j].stock - p.unidades);
+                            break;
+                        }
+                    }
+
+                    cout << "[CAJA] Pedido " << p.id_pedido
+                         << " entregado a libreria " << p.id_editorial
+                         << " (libro " << p.cod_libro << ", "
+                         << p.unidades << " unidades).\n";
+                }
+            }
+
+            // 2️⃣ Vaciar todas las colas del sistema para reiniciar
+            while (!iniciado.vacia()) iniciado.desencolar();
+            while (!almacen.vacia()) almacen.desencolar();
+            while (!imprenta.vacia()) imprenta.desencolar();
+            while (!listo.vacia()) listo.desencolar();
+
+            cout << "\nTodos los pedidos han sido entregados.\n";
+            cout << "Cajas vaciadas.\n";
+            cout << "Stock actualizado. Listo para nuevos pedidos.\n";
+
+            break;
     }
 
-    // Mostrar el stock después de cada fase
     mostrarStock(catalogo);
 
-    // Avanzar a la siguiente fase (ciclo 0→1→2→3→0)
-    fase = (fase + 1) % 4;
+    // Incrementar fase: ahora hay 5 fases (0→1→2→3→4→0)
+    fase = (fase + 1) % 5;
 }
